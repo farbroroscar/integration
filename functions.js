@@ -25,7 +25,7 @@ const buildXML = (body) => {
   mappedToSeparatedObjects.reduce((acc, current, index, arr) => {
     const isNewPerson = current[0] === PERSON.PERSON;
     const isNotFirstRound = index > 1;
-    const isLastRound = index === arr.length;
+    const isLastRound = index === arr.length - 1;
     if ((isNewPerson && isNotFirstRound) || isLastRound) {
       separatePersons.push(acc);
       return [current];
