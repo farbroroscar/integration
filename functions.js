@@ -6,30 +6,47 @@ const buildXML = (body) => {
   const mappedToSeparatedObjects = split.map((line) => line.split("|"));
   mappedToSeparatedObjects.map((line) => (line[0] = peopleElements[line[0]])); // FIX!
 
-  const convertableStructure = generateConvertibleStructure(
-    mappedToSeparatedObjects
+  const separatePeople = [];
+  mappedToSeparatedObjects.reduce((acc, current, index, arr) => {
+    const isNewPerson = current[0] === "person";
+    const isNotFirstRound = index > 1;
+    const isLastRound = index === arr.length;
+    if ((isNewPerson && isNotFirstRound) || isLastRound) {
+      separatePeople.push(acc);
+      return [current];
+    }
+
+    return [...acc, current];
+  }, []);
+
+  const people = separatePeople.map((person) =>
+    generateXMLConvertiblePerson(person)
   );
 
-  const XML = generateXml(convertableStructure);
+  const XML = generateXml({ people });
+
   return XML;
 };
 
-const generateConvertibleStructure = (peopleData) => {
-  const convertableStructure = peopleData.reduce((acc, currentValue) => {
-    const [parentElement, ...rest] = currentValue;
+const generateXMLConvertiblePerson = (peopleData) => {
+  const convertableStructure = peopleData.reduce((acc, current) => {
+    const [parentElement, ...rest] = current;
     const children = makeChildren(parentElement, rest);
+
+    if (parentElement !== "person") {
+      acc.person = { ...acc.person, [parentElement]: children };
+      return { ...acc };
+    }
 
     return { ...acc, [parentElement]: children };
   }, []);
 
-  const people = { people: { ...convertableStructure } };
-  return people;
+  return { ...convertableStructure };
 };
 
-const generateXml = (oscar) => {
+const generateXml = (data) => {
   const builder = new xml2js.Builder();
-  const test = builder.buildObject(oscar);
-  return test;
+  return builder.buildObject(data);
 };
 
 const peopleElements = {
