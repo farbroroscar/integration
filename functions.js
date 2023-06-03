@@ -47,23 +47,26 @@ const generateXMLConvertiblePerson = (peopleData) => {
   const convertableStructure = peopleData.reduce((acc, current) => {
     const [parentElement, ...rest] = current;
     const children = makeChildren(parentElement, rest);
+    const shouldAddNewPerson = parentElement === PERSON.PERSON;
+    const shouldAddPhoneToFamily =
+      parentElement === PERSON.PHONE && acc.person.family;
+    const shouldAddAddressToFamily =
+      parentElement === PERSON.ADDRESS && acc.person.family;
 
-    if (parentElement !== PERSON.PERSON) {
-      if (
-        parentElement === PERSON.PHONE ||
-        (parentElement === PERSON.ADDRESS && acc.person.family)
-      ) {
-        acc.person.family = { ...acc.person.family, [parentElement]: children };
-        return { ...acc };
-      }
-      acc.person = { ...acc.person, [parentElement]: children };
-      return { ...acc };
+    if (shouldAddNewPerson) {
+      return { ...acc, [parentElement]: children };
     }
 
-    return { ...acc, [parentElement]: children };
+    if (shouldAddAddressToFamily || shouldAddPhoneToFamily) {
+      acc.person.family = { ...acc.person.family, [parentElement]: children };
+      return acc;
+    }
+
+    acc.person = { ...acc.person, [parentElement]: children };
+    return acc;
   }, []);
 
-  return { ...convertableStructure };
+  return convertableStructure;
 };
 
 const generateXml = (data) => {
