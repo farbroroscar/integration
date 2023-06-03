@@ -1,25 +1,40 @@
 const xml2js = require("xml2js");
 
+const peopleElements = {
+  P: "person",
+  T: "phone",
+  A: "address",
+  F: "family",
+};
+
+const PERSON = {
+  PERSON: "person",
+  PHONE: "phone",
+  ADDRESS: "address",
+  FAMILY: "family",
+};
+
 const buildXML = (body) => {
   const split = body.split(/[\n,]+/); //  filter out linebreaks when data has multiple lines.
   // const split = body.split(/[\s,]+/); //  filter out linebreaks when data has multiple lines.
   const mappedToSeparatedObjects = split.map((line) => line.split("|"));
   mappedToSeparatedObjects.map((line) => (line[0] = peopleElements[line[0]])); // FIX!
 
-  const separatePeople = [];
+  const separatePersons = [];
+
   mappedToSeparatedObjects.reduce((acc, current, index, arr) => {
-    const isNewPerson = current[0] === "person";
+    const isNewPerson = current[0] === PERSON.PERSON;
     const isNotFirstRound = index > 1;
     const isLastRound = index === arr.length;
     if ((isNewPerson && isNotFirstRound) || isLastRound) {
-      separatePeople.push(acc);
+      separatePersons.push(acc);
       return [current];
     }
 
     return [...acc, current];
   }, []);
 
-  const people = separatePeople.map((person) =>
+  const people = separatePersons.map((person) =>
     generateXMLConvertiblePerson(person)
   );
 
@@ -33,7 +48,14 @@ const generateXMLConvertiblePerson = (peopleData) => {
     const [parentElement, ...rest] = current;
     const children = makeChildren(parentElement, rest);
 
-    if (parentElement !== "person") {
+    if (parentElement !== PERSON.PERSON) {
+      if (
+        parentElement === PERSON.PHONE ||
+        (parentElement === PERSON.ADDRESS && acc.person.family)
+      ) {
+        acc.person.family = { ...acc.person.family, [parentElement]: children };
+        return { ...acc };
+      }
       acc.person = { ...acc.person, [parentElement]: children };
       return { ...acc };
     }
@@ -49,40 +71,31 @@ const generateXml = (data) => {
   return builder.buildObject(data);
 };
 
-const peopleElements = {
-  P: "person",
-  T: "phone",
-  A: "address",
-  F: "family",
-};
-
 // find better way.
 const makeChildren = (parent, children) => {
-  if (parent === "person") {
+  if (parent === PERSON.PERSON) {
     return {
       name: children[0],
       lastName: children[1],
     };
   }
-  if (parent === "phone") {
+  if (parent === PERSON.PHONE) {
     return {
       mobile: children[0],
       landLine: children[1],
     };
   }
-  if (parent === "address") {
+  if (parent === PERSON.ADDRESS) {
     return {
       street: children[0],
       city: children[1],
       zipCode: children[2],
     };
   }
-  if (parent === "family") {
+  if (parent === PERSON.FAMILY) {
     return {
       name: children[0],
       born: children[1],
-      //could have additional phone
-      //could have additional address
     };
   }
 };
@@ -94,6 +107,7 @@ const makeChildren = (parent, children) => {
 // A|Solliden|Öland|10002
 // F|Oscar|2016
 // T|0702-020202|02-202020
+
 // P|Joe|Biden
 // A|WhiteHouse|Washington,D.C
 // P kan följas av T,A och F
