@@ -1,4 +1,5 @@
 const xml2js = require("xml2js");
+const fs = require("fs");
 
 const peopleElements = {
   P: "person",
@@ -14,18 +15,24 @@ const PERSON = {
   FAMILY: "family",
 };
 
-const buildXML = (body) => {
-  const split = body.split(/[\n,]+/); //  filter out linebreaks when data has multiple lines.
-  // const split = body.split(/[\s,]+/); //  filter out linebreaks when data has multiple lines.
-  const mappedToSeparatedObjects = split.map((line) => line.split("|"));
-  mappedToSeparatedObjects.map((line) => (line[0] = peopleElements[line[0]])); // FIX!
+const getPeople = () => {
+  const peopleFromFile = fs.readFileSync("./people.txt", "utf8");
+  // todo: validate data
+  const peopleFormated = peopleFromFile
+    .split(/[\n,]+/) // Remove linebreaks.
+    .map((line) => line.split("|")) // Divide each elment propery insted of separating them with "|".
+    .map((line) => {
+      const [_, ...rest] = line;
+      return [peopleElements[line[0]], ...rest]; // Map single charachter to word.
+    });
 
   const separatePersons = [];
 
-  mappedToSeparatedObjects.reduce((acc, current, index, arr) => {
+  peopleFormated.reduce((acc, current, index, array) => {
     const isNewPerson = current[0] === PERSON.PERSON;
     const isNotFirstRound = index > 1;
-    const isLastRound = index === arr.length - 1;
+    const isLastRound = index === array.length - 1;
+
     if ((isNewPerson && isNotFirstRound) || isLastRound) {
       separatePersons.push(acc);
       return [current];
@@ -35,7 +42,7 @@ const buildXML = (body) => {
   }, []);
 
   const people = separatePersons.map((person) =>
-    generateXMLConvertiblePerson(person)
+    createXMLConvertiblePerson(person)
   );
 
   const XML = generateXml({ people });
@@ -43,8 +50,8 @@ const buildXML = (body) => {
   return XML;
 };
 
-const generateXMLConvertiblePerson = (peopleData) => {
-  const convertableStructure = peopleData.reduce((acc, current) => {
+const createXMLConvertiblePerson = (person) => {
+  const convertablePerson = person.reduce((acc, current) => {
     const [parentElement, ...rest] = current;
     const children = makeChildren(parentElement, rest);
     const shouldAddNewPerson = parentElement === PERSON.PERSON;
@@ -66,7 +73,7 @@ const generateXMLConvertiblePerson = (peopleData) => {
     return acc;
   }, []);
 
-  return convertableStructure;
+  return convertablePerson;
 };
 
 const generateXml = (data) => {
@@ -74,7 +81,6 @@ const generateXml = (data) => {
   return builder.buildObject(data);
 };
 
-// find better way.
 const makeChildren = (parent, children) => {
   if (parent === PERSON.PERSON) {
     return {
@@ -103,38 +109,4 @@ const makeChildren = (parent, children) => {
   }
 };
 
-// P|Victoria|Bernadotte
-// T|070-0101010|0459-123456
-// A|HagaSlott|Stockholm|101
-// F|Estelle|2012
-// A|Solliden|Öland|10002
-// F|Oscar|2016
-// T|0702-020202|02-202020
-
-// P|Joe|Biden
-// A|WhiteHouse|Washington,D.C
-// P kan följas av T,A och F
-// F kan följas av T och A
-
-// <people>
-// <person>
-//   <firstname>Victoria</firstname>
-
-//   <lastname>Bernadotte</lastname>
-//   <address>
-//     <street>HagaSlott</street>
-//   </address>
-//   <phone>
-//     <mobile>070-0101010</mobile>
-//   </phone>
-//   <family>
-//     <name>Estelle</name>
-//     <born>2012</born>
-//     <address>...</address>
-//   </family>
-//   <family>...</family>
-// </person>
-// <person>...</person>
-// </people>
-
-module.exports = buildXML;
+module.exports = getPeople;

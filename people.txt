@@ -1,0 +1,16 @@
+P|Oscar|Lindberg
+T|0763214446|0459-123456
+A|JÄrnvägen|Torne|35597
+F|Solveig|2022
+P|Victoria|Bernadotte
+T|070-0101010|0459-123456
+A|HagaSlott|Stockholm|101
+F|EstellAA|2012
+T|012345640|0459-666
+A|HagaSlottett|STHLM|10
+P|Alf|Lindberg
+T|070123456|0459-123456
+A|gatan|Nyköping|9999
+F|Labolina|2023
+A|Softhouse|Växjö|101
+T|070123456|0459-1234
