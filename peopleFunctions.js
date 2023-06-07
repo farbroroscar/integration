@@ -116,15 +116,19 @@ const validateParentTagOrder = (people) => {
 
       const previousCharacter = acc.slice(-1)[0];
 
+      const isRepeat = currentCharacter === previousCharacter;
       const canFollowP =
         currentCharacter === "T" ||
         currentCharacter === "A" ||
         currentCharacter === "F";
-
       const canFollowF =
         currentCharacter === "T" ||
         currentCharacter === "A" ||
         currentCharacter === "P";
+
+      if (isRepeat) {
+        return false;
+      }
 
       if (previousCharacter === "P") {
         return canFollowP ? [...acc, currentCharacter] : false;
@@ -133,6 +137,7 @@ const validateParentTagOrder = (people) => {
       if (previousCharacter === "F") {
         return canFollowF ? [...acc, currentCharacter] : false;
       }
+
       return [...acc, currentCharacter];
     },
     []
