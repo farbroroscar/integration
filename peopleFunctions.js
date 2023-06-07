@@ -1,5 +1,4 @@
-const xml2js = require("xml2js");
-const fs = require("fs");
+const { formatLineBasedDataToXMLConvertibleData } = require("./utils");
 
 const peopleElements = {
   P: "person",
@@ -15,23 +14,18 @@ const PERSON = {
   FAMILY: "family",
 };
 
-const getPeople = () => {
-  const peopleFromFile = fs.readFileSync("./people.txt", "utf8");
+const mapPeopleToXMLConvertibleFormat = (data) => {
+  const peopleFormatted = formatLineBasedDataToXMLConvertibleData(data);
 
-  const peopleFormated = peopleFromFile
-    .split(/[\n,]+/) // Removes linebreaks.
-    .map((line) => line.split("|")); // Divides each elment propery insted of separating them with "|".
+  const isValidOrderOfPeopleElements = validateParentTagOrder(peopleFormatted);
 
-  const validOrderOfPeopleElements = validatePeople(peopleFormated);
-
-  if (!validOrderOfPeopleElements) {
-    // fix proper message...
-    return "bad content";
+  if (!isValidOrderOfPeopleElements) {
+    return false;
   }
 
-  const peopleCharactersMappedToWords = peopleFormated.map((element) => {
+  const peopleCharactersMappedToWords = peopleFormatted.map((element) => {
     const [_, ...rest] = element;
-    return [peopleElements[element[0]], ...rest]; // Map single charachter to word.
+    return [peopleElements[element[0]], ...rest]; // Map single character to word.
   });
 
   const separatePersons = [];
@@ -57,13 +51,11 @@ const getPeople = () => {
     createXMLConvertiblePerson(person)
   );
 
-  const XML = generateXml({ people });
-
-  return XML;
+  return { people };
 };
 
 const createXMLConvertiblePerson = (person) => {
-  const convertablePerson = person.reduce((acc, current) => {
+  const convertiblePerson = person.reduce((acc, current) => {
     const [parentElement, ...rest] = current;
     const children = makeChildren(parentElement, rest);
     const shouldAddNewPerson = parentElement === PERSON.PERSON;
@@ -85,12 +77,7 @@ const createXMLConvertiblePerson = (person) => {
     return acc;
   }, []);
 
-  return convertablePerson;
-};
-
-const generateXml = (data) => {
-  const builder = new xml2js.Builder();
-  return builder.buildObject(data);
+  return convertiblePerson;
 };
 
 const makeChildren = (parent, children) => {
@@ -121,42 +108,39 @@ const makeChildren = (parent, children) => {
   }
 };
 
-const validatePeople = (people) => {
+const validateParentTagOrder = (people) => {
   const parentElementCharacters = people.map((tag) => tag[0]);
-  const isValidSequence = validateTagOrder(parentElementCharacters);
-  return isValidSequence;
-};
-
-const validateTagOrder = (peopleTagSequence) => {
-  const validCharachterOrder = !!peopleTagSequence.reduce(
-    (acc, currentChar) => {
+  const isValidSequence = !!parentElementCharacters.reduce(
+    (acc, currentCharacter) => {
       if (!acc) {
         return false;
       }
 
-      const previousCharachter = acc.slice(-1)[0];
+      const previousCharacter = acc.slice(-1)[0];
+
       const canFollowP =
-        currentChar === "T" || currentChar === "A" || currentChar === "F";
+        currentCharacter === "T" ||
+        currentCharacter === "A" ||
+        currentCharacter === "F";
+
       const canFollowF =
-        currentChar === "T" || currentChar === "A" || currentChar === "P";
+        currentCharacter === "T" ||
+        currentCharacter === "A" ||
+        currentCharacter === "P";
 
-      if (previousCharachter === "P") {
-        return canFollowP ? [...acc, currentChar] : false;
+      if (previousCharacter === "P") {
+        return canFollowP ? [...acc, currentCharacter] : false;
       }
 
-      if (previousCharachter === "F") {
-        return canFollowF ? [...acc, currentChar] : false;
+      if (previousCharacter === "F") {
+        return canFollowF ? [...acc, currentCharacter] : false;
       }
-      return [...acc, currentChar];
+      return [...acc, currentCharacter];
     },
     []
   );
 
-  return validCharachterOrder;
+  return isValidSequence;
 };
 
-module.exports = getPeople;
-
-// cad har jag gjort?
-// lagt till fix för att jag inte alltid fick med sista elementet.
-// lagt till validering
+module.exports = { mapPeopleToXMLConvertibleFormat };
