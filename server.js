@@ -1,13 +1,17 @@
 const express = require("express");
 const { mapPeopleToXMLConvertibleFormat } = require("./peopleFunctions");
-const { generateXml, readDataFromFile } = require("./utils");
+const {
+  generateXml,
+  readDataFromFile,
+  formatLineBasedDataToXMLConvertibleData,
+} = require("./utils");
 
 const app = express();
 
 const PORT = 4000;
 const FILE_PATH = "./people.txt";
 
-app.use(express.text()); // map incomming reqest body as text.
+app.use(express.text()); // map incoming request body as text.
 
 app.get("/people", (_req, res) => {
   const onError = (_err) => {
@@ -16,7 +20,11 @@ app.get("/people", (_req, res) => {
   };
 
   const onSuccess = (peopleAsFileData) => {
-    const people = mapPeopleToXMLConvertibleFormat(peopleAsFileData);
+    const peopleFormatted =
+      formatLineBasedDataToXMLConvertibleData(peopleAsFileData);
+
+    const people = mapPeopleToXMLConvertibleFormat(peopleFormatted);
+
     if (!people) {
       res.sendStatus(500);
       return;

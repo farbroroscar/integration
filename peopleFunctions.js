@@ -14,16 +14,14 @@ const PERSON = {
   FAMILY: "family",
 };
 
-const mapPeopleToXMLConvertibleFormat = (data) => {
-  const peopleFormatted = formatLineBasedDataToXMLConvertibleData(data);
-
-  const isValidOrderOfPeopleElements = validateParentTagOrder(peopleFormatted);
+const mapPeopleToXMLConvertibleFormat = (people) => {
+  const isValidOrderOfPeopleElements = validateParentTagOrder(people);
 
   if (!isValidOrderOfPeopleElements) {
     return false;
   }
 
-  const peopleCharactersMappedToWords = peopleFormatted.map((element) => {
+  const peopleCharactersMappedToWords = people.map((element) => {
     const [_, ...rest] = element;
     return [peopleElements[element[0]], ...rest]; // Map single character to word.
   });
@@ -47,11 +45,11 @@ const mapPeopleToXMLConvertibleFormat = (data) => {
     return [...acc, current];
   }, []);
 
-  const people = separatePersons.map((person) =>
+  const XMLConvertiblePeople = separatePersons.map((person) =>
     createXMLConvertiblePerson(person)
   );
 
-  return { people };
+  return { XMLConvertiblePeople };
 };
 
 const createXMLConvertiblePerson = (person) => {
