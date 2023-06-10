@@ -49,7 +49,7 @@ const mapPeopleToXMLConvertibleFormat = (people) => {
     createXMLConvertiblePerson(person)
   );
 
-  return { XMLConvertiblePeople };
+  return { people: XMLConvertiblePeople };
 };
 
 const createXMLConvertiblePerson = (person) => {
