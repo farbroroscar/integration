@@ -19,10 +19,9 @@ const generateXml = (data) => {
 };
 
 const formatLineBasedDataToXMLConvertibleData = (lineBasedData) => {
-  const XMLConvertibleData = lineBasedData
+  return lineBasedData
     .split(/[\n,]+/) // Removes linebreaks.
-    .map((line) => line.split('|')); // Divides each element properly instead of separating them with "|".
-  return XMLConvertibleData;
+    .map((line) => line.split('|')); // Divides each element properly instead of separating them with "|"
 };
 
 module.exports = {

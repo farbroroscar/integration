@@ -11,12 +11,12 @@ const getPeople = async (path = './test/peopleTest.txt') =>
     headers: { test: '1', testpath: path }
   }).then((response) => response.text());
 
-test('1. Should be able to send a get request to server and have it return XML that was read from a file and converted from a linebased format.', () => {
+test('1. Should be able to send a get request to server and have it return XML that was read from a file and converted from a line based format.', () => {
   getPeople().then((data) => expect(data).toBe(expectedXML));
 });
 
 test('2. Server should return Internal Server Error when there is no file to read from.', () => {
-  const path = './fail';
+  const path = './fail'; // nonexistent.
   getPeople(path).then((resp) => expect(resp).toBe('Internal Server Error'));
 });
 

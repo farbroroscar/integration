@@ -14,7 +14,7 @@ test('1. Should be able to generate XML if given correct data.', () => {
   );
 });
 
-test('1. Should be able convert linebased data to data that is convertible to XML.', () => {
+test('1. Should be able convert line based data to data that is convertible to XML.', () => {
   expect(
     formatLineBasedDataToXMLConvertibleData('P|testName|testLastName\nT|0763214446|0459-123456')
   ).toEqual([
