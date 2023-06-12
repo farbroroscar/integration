@@ -14,7 +14,5 @@ Send a get request to http://localhost:4000/people and receive XML that was conv
 ​
 ## Running jest tests
 ​
-Make sure you have the integration server running (`npm run integration`).
-
 `npm run test`
-- Make sure you have the integration server running (`npm run integration`).
+- Make sure you have the integration server running ( `npm run integration` ).
