@@ -13,39 +13,33 @@ const PERSON = {
 };
 
 const mapPeopleToXMLConvertibleFormat = (people) => {
-  const peopleCharactersMappedToWords = people.map((element) => {
-    const [_, ...rest] = element;
-    return [peopleElements[element[0]], ...rest]; // Map single character to word.
-  });
+  const XMLConvertiblePeople = people
+    .map((row) => {
+      const [char, ...rest] = row;
+      return [peopleElements[char], ...rest]; // Map single character to word.
+    })
+    .reduce((acc, current) => {
+      const isNewPerson = current[0] === PERSON.PERSON;
+      const newAcc = [...acc];
 
-  const separatePersons = [];
+      if (isNewPerson) {
+        newAcc.push([current]);
+      } else {
+        newAcc[newAcc.length - 1].push(current);
+      }
 
-  peopleCharactersMappedToWords.reduce((acc, current, index, array) => {
-    const isNewPerson = current[0] === PERSON.PERSON;
-    const isNotFirstRound = index > 0;
-    const isLastRound = index === array.length - 1;
-
-    if (isLastRound) {
-      separatePersons.push([...acc, current]);
-      return [];
-    }
-    if (isNewPerson && isNotFirstRound) {
-      separatePersons.push(acc);
-      return [current];
-    }
-
-    return [...acc, current];
-  }, []);
-
-  const XMLConvertiblePeople = separatePersons.map((person) => createXMLConvertiblePerson(person));
+      return newAcc;
+    }, [])
+    .map((person) => createXMLConvertiblePerson(person));
 
   return { people: XMLConvertiblePeople };
 };
 
 const createXMLConvertiblePerson = (person) => {
-  const convertiblePerson = person.reduce((acc, current) => {
+  const XMLconvertiblePerson = person.reduce((acc, current) => {
     const [parentElement, ...rest] = current;
     const children = makeChildren(parentElement, rest);
+
     const shouldAddNewPerson = parentElement === PERSON.PERSON;
     const shouldAddPhoneToFamily = parentElement === PERSON.PHONE && acc.person.family;
     const shouldAddAddressToFamily = parentElement === PERSON.ADDRESS && acc.person.family;
@@ -60,10 +54,11 @@ const createXMLConvertiblePerson = (person) => {
     }
 
     acc.person = { ...acc.person, [parentElement]: children };
+
     return acc;
   }, []);
 
-  return convertiblePerson;
+  return XMLconvertiblePerson;
 };
 
 const makeChildren = (parent, children) => {
@@ -96,32 +91,31 @@ const makeChildren = (parent, children) => {
 
 const validateParentTagOrder = (people) => {
   const parentElementCharacters = people.map((tag) => tag[0]);
-  const isValidSequence = !!parentElementCharacters.reduce((acc, currentCharacter) => {
+
+  const isValidSequence = !!parentElementCharacters.reduce((acc, current) => {
     if (!acc) {
       return false;
     }
 
     const previousCharacter = acc.slice(-1)[0];
 
-    const isRepeat = currentCharacter === previousCharacter;
-    const canFollowP =
-      currentCharacter === 'T' || currentCharacter === 'A' || currentCharacter === 'F';
-    const canFollowF =
-      currentCharacter === 'T' || currentCharacter === 'A' || currentCharacter === 'P';
+    const isRepeat = current === previousCharacter;
+    const canFollowP = current === 'T' || current === 'A' || current === 'F';
+    const canFollowF = current === 'T' || current === 'A' || current === 'P';
 
     if (isRepeat) {
       return false;
     }
 
     if (previousCharacter === 'P') {
-      return canFollowP ? [...acc, currentCharacter] : false;
+      return canFollowP ? [...acc, current] : false;
     }
 
     if (previousCharacter === 'F') {
-      return canFollowF ? [...acc, currentCharacter] : false;
+      return canFollowF ? [...acc, current] : false;
     }
 
-    return [...acc, currentCharacter];
+    return [...acc, current];
   }, []);
 
   return isValidSequence;
